@@ -1,65 +1,69 @@
 import Head from 'next/head'
+import { useEffect } from 'react'
 import styles from '../styles/Home.module.css'
+import { useRouter } from "next/router";
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+	const router = useRouter()
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+	useEffect (() => {
+        const script = document.createElement('script')
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+        script.async = true
+        script.id = 'razorpay-script'
+        document.head.appendChild(script)
+        return () => {
+            const script = document.getElementById('razorpay-script')
+            const rContainer = document.querySelector('.razorpay-container')
+            console.log('script2', rContainer)
+            rContainer && rContainer.remove()
+            script && script.remove()
+        };
+    }, [])
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+	const displayRazorpay = async (data) => {
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+		const options = {
+			key: 'rzp_test_NjVOM0U7XTIgmq',
+			amount: 27890,
+			// order_id: data?.order_id,
+			// notes: data?.notes,
+			name: 'CaterHero',
+			description: 'Order Food',
+			image: 'http://localhost:1337/logo.svg',
+			handler: (response) => {
+        		confirmPayment(response)
+			},
+			prefill: {
+				name: 'rajat',
+				email: 'rajat@harakirimail.com',
+				phone_number: 989562314
+			}
+		}
+        const paymentObject = new window.Razorpay(options)
+        paymentObject.on('payment.failed', function (response){
+            confirmPayment(response, false);
+        })
+		paymentObject.open()
+	}
+	
+	const confirmPayment = () => {
+		router.push('/success')
+	}
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
+  	return (
+		<div >
+			<Head>
+				<title>Create Next App</title>
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
+
+			<main className={styles.main}>
+				<button onClick={displayRazorpay}>pay</button>
+			</main>
+		</div>
   )
 }
